@@ -1,0 +1,44 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Databases and backups
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Audio files
+*.wav
+*.mp3
+*.m4a
+*.ogg
+*.webm
+*.flac
+
+# Frontend
+node_modules/
+dist/
+build/
+
+# IDE, OS and logs
+.vscode/
+.idea/
+.DS_Store
+*.log
+
+# Test and cache files
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
