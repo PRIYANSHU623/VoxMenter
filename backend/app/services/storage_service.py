@@ -109,3 +109,18 @@ def delete_audio(object_key: str) -> None:
         Bucket=B2_BUCKET_NAME,
         Key=object_key,
     )
+
+
+def download_audio(object_key: str) -> bytes:
+    """Download a private audio object from B2 into memory."""
+    _validate_object_key(object_key)
+
+    response = get_s3_client().get_object(
+        Bucket=B2_BUCKET_NAME,
+        Key=object_key,
+    )
+
+    try:
+        return response["Body"].read()
+    finally:
+        response["Body"].close()

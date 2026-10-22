@@ -4,6 +4,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
+from app.tasks.transcription_tasks import transcribe_recording
 from app.api.auth import get_current_user
 from app.db.session import get_db
 from app.models.user import User
@@ -455,3 +456,80 @@ def legacy_delete_recording(
         ) from exc
 
     return {"message": "Legacy recording deleted", "session_id": session_id}
+
+
+
+@router.post("/api/recordings/{recording_id}/transcription")
+def start_transcription(
+    recording_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    recording = get_owned_recording(db, current_user, recording_id)
+
+    if recording is None:
+        raise HTTPException(status_code=404, detail="Recording not found")
+
+    if recording.status in {"queued", "transcribing"}:
+        return {
+            "recording_id": recording.id,
+            "status": recording.status,
+            "message": "Transcription is already pending or running",
+        }
+
+    if recording.status == "transcribed" and recording.transcript:
+        return {
+            "recording_id": recording.id,
+            "status": recording.status,
+            "transcript": recording.transcript,
+            "message": "Transcription is already complete",
+        }
+
+    recording.status = "queued"
+    recording.error_message = None
+    db.commit()
+
+    try:
+        task = transcribe_recording.delay(recording.id)
+    except Exception as exc:
+        db.rollback()
+
+        recording = get_owned_recording(db, current_user, recording_id)
+        if recording is not None:
+            recording.status = "failed"
+            recording.error_message = (
+                "Could not queue transcription. Please try again."
+            )
+            db.commit()
+
+        raise HTTPException(
+            status_code=503,
+            detail="Transcription queue is unavailable. Please try again.",
+        ) from exc
+
+    return {
+        "recording_id": recording_id,
+        "status": "queued",
+        "task_id": task.id,
+        "message": "Transcription has been queued",
+    }
+
+
+@router.get("/api/recordings/{recording_id}/transcription")
+def get_transcription_status(
+    recording_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    recording = get_owned_recording(db, current_user, recording_id)
+
+    if recording is None:
+        raise HTTPException(status_code=404, detail="Recording not found")
+
+    return {
+        "recording_id": recording.id,
+        "status": recording.status,
+        "transcript": recording.transcript,
+        "error_message": recording.error_message,
+        "updated_at": recording.updated_at,
+    }
