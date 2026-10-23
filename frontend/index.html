@@ -2,9 +2,26 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/voxmenter-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>VoxMenter — AI Interview Coach</title>
+
+    <!-- Runs before the page paints, so the saved theme is applied
+         immediately and there is no flash of the wrong theme. -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('voxmenter-theme')
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+          var theme = saved === 'light' || saved === 'dark'
+            ? saved
+            : (prefersDark ? 'dark' : 'light')
+          if (theme === 'dark') document.documentElement.classList.add('dark')
+        } catch (e) {
+          /* localStorage can be blocked; fall back to light */
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

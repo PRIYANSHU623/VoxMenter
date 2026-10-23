@@ -1,111 +1,142 @@
+@import "tailwindcss";
+
+/* Tailwind's `dark:` variant follows the .dark class on <html>,
+   so our toggle (not just the OS setting) controls the theme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------- Design tokens: light (default) ---------- */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  color-scheme: light;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --canvas: #faf6ee;      /* warm ivory page background */
+  --surface: #f1ece2;     /* muted stone panels */
+  --raised: #fffdf8;      /* inputs, dialogs, popovers */
+  --ink: #1c1a17;         /* main text */
+  --muted: #6b655b;       /* secondary text */
+  --line: #ddd6c8;        /* borders and dividers */
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --accent: #b8501a;      /* burnt orange, for key actions only */
+  --accent-hover: #9c4215;
+  --accent-fg: #fffaf3;   /* text on top of accent */
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  --tech: #2f5d6b;        /* technical feedback */
+  --comm: #5b6b2f;        /* communication feedback */
+  --ok: #3f6b4a;
+  --warn: #946200;
+  --danger: #a63a2b;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* ---------- Design tokens: dark ---------- */
+:root.dark {
+  color-scheme: dark;
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+  --canvas: #16171a;      /* deep charcoal */
+  --surface: #1e2024;
+  --raised: #25282d;
+  --ink: #edeae4;         /* soft white */
+  --muted: #9aa0a8;
+  --line: #33373f;        /* muted slate border */
+
+  --accent: #e0742f;      /* same orange family, lifted for contrast */
+  --accent-hover: #ec8645;
+  --accent-fg: #1a120c;
+
+  --tech: #6fa8ba;
+  --comm: #a7b96a;
+  --ok: #78b389;
+  --warn: #d9a441;
+  --danger: #e08070;
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+/* ---------- Expose tokens as Tailwind utilities ----------
+   e.g. bg-canvas, bg-surface, text-ink, text-muted, border-line,
+   bg-accent, text-accent-fg, text-tech, text-comm */
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-tech: var(--tech);
+  --color-comm: var(--comm);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* ---------- Base styles ---------- */
+html {
+  background-color: var(--canvas);
 }
 
 body {
   margin: 0;
+  min-height: 100vh;
+  background-color: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip; /* never allow sideways scrolling */
+  overflow-wrap: break-word;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+/* Visible keyboard focus in both themes */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+::selection {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+/* Respect "reduce motion" system settings */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
+
+
+
+
+/* ---------- Editorial typography ---------- */
+@theme inline {
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
+    "Times New Roman", serif;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+    line-height: 1.15;
   }
 }
-p {
-  margin: 0;
-}
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* Small uppercase label used above headings and sections */
+@utility eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
