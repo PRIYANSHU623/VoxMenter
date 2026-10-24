@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -193,8 +193,15 @@ def list_session_questions(
 
 
 @router.post("/{session_id}/evaluate")
+# def evaluate_practice_session(
+#     session_id: int,
+#     db: Session = Depends(get_db),
+#     current_user: User = Depends(get_current_user),
+# ):
+@router.post("/{session_id}/evaluate")
 def evaluate_practice_session(
     session_id: int,
+    recording_id: int | None = Query(default=None, gt=0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -208,8 +215,24 @@ def evaluate_practice_session(
         )
 
     # 2. Find the latest successfully transcribed recording
-    # associated with this practice session.
-    recording = (
+    # # associated with this practice session.
+    # recording = (
+    #     db.query(Recording)
+    #     .join(
+    #         SessionQuestion,
+    #         Recording.session_question_id == SessionQuestion.id,
+    #     )
+    #     .filter(
+    #         SessionQuestion.session_id == session.id,
+    #         Recording.status == "transcribed",
+    #         Recording.transcript.isnot(None),
+    #         Recording.transcript != "",
+    #     )
+    #     .order_by(Recording.created_at.desc())
+    #     .first()
+    # )
+    
+    recording_query = (
         db.query(Recording)
         .join(
             SessionQuestion,
@@ -221,9 +244,14 @@ def evaluate_practice_session(
             Recording.transcript.isnot(None),
             Recording.transcript != "",
         )
-        .order_by(Recording.created_at.desc())
-        .first()
     )
+
+    # Optional: evaluate one specific attempt. The join above already
+    # guarantees it belongs to this user's session.
+    if recording_id is not None:
+        recording_query = recording_query.filter(Recording.id == recording_id)
+
+    recording = recording_query.order_by(Recording.created_at.desc()).first()
 
     if recording is None or not recording.transcript.strip():
         raise HTTPException(
@@ -301,6 +329,7 @@ def evaluate_practice_session(
         # Store the full evaluation report as JSON-compatible data.
         report = result.model_dump(mode="json")
         report["calculated_scores"] = scores
+        report["recording_id"] = recording.id
 
         # 7. Save the evaluation to SQLite.
         evaluation = Evaluation(
@@ -374,3 +403,38 @@ def get_session_evaluation(
         "created_at": evaluation.created_at,
         "report": evaluation.feedback,
     }
+
+
+@router.get("/{session_id}/evaluations")
+def list_session_evaluations(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Ownership check first, same as every other session route.
+    session = get_session(db, current_user, session_id)
+
+    if session is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Practice session not found",
+        )
+
+    evaluations = (
+        db.query(Evaluation)
+        .filter(Evaluation.session_id == session.id)
+        .order_by(Evaluation.created_at, Evaluation.id)
+        .all()
+    )
+
+    return [
+        {
+            "evaluation_id": item.id,
+            "session_id": session.id,
+            "technical_score": item.technical_score,
+            "communication_score": item.communication_score,
+            "created_at": item.created_at,
+            "report": item.feedback,
+        }
+        for item in evaluations
+    ]

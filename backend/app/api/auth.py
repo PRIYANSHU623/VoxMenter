@@ -18,6 +18,7 @@ from app.core.security import (
     create_access_token,
     decode_access_token,
 )
+from app.core import question_discovery_config as discovery_config
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -136,4 +137,17 @@ def get_current_user(
 def get_me(
     current_user: User = Depends(get_current_user),
 ):
+    return current_user
+    
+    
+    
+def require_admin(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Allow only the accounts listed in ADMIN_EMAILS (backend/.env)."""
+    if current_user.email.lower() not in discovery_config.ADMIN_EMAILS:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Administrator access is required.",
+        )
     return current_user

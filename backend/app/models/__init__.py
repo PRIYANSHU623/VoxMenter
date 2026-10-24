@@ -7,6 +7,13 @@ from app.models.question import Question
 from app.models.practice_session import PracticeSession
 from app.models.session_question import SessionQuestion
 from app.models.recording import Recording
+from app.models.question_discovery import (
+    CategoryCooldown,
+    QuestionGenerationRun,
+    QuestionSource,
+)
 
 
-__all__ = ["User", "Evaluation", "Question", "PracticeSession", "SessionQuestion", "Recording"]
+__all__ = ["User", "Evaluation", "Question", "PracticeSession", "SessionQuestion", "Recording","QuestionSource",
+    "QuestionGenerationRun",
+    "CategoryCooldown",]
