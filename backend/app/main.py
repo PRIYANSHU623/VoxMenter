@@ -7,7 +7,7 @@ app = FastAPI(title = "AI interview and Comunication" )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173","http://localhost:4173"],
+    allow_origins=["http://localhost:5173","http://localhost:4173","https://vox-menter.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
