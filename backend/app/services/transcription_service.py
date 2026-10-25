@@ -157,9 +157,11 @@ def get_model() -> WhisperModel:
 
     if _model is None:
         _model = WhisperModel(
-            "base.en",
+            "tiny.en",
             device="cpu",
             compute_type="int8",
+            cpu_threads=1,
+            num_workers=1,
         )
 
     return _model
